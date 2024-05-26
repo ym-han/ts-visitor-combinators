@@ -80,7 +80,35 @@ class AddTwo extends Twice {
 
 /***********************
  Choice
+
+  * has Identity as left-zero, but not as right-zero
+
+    Choice(Fail, v)     = v
+    Choice(v, Fail)     = v
+    Choice(Identity, v) = Identity
 ***********************/
+
+class VisitFailure extends Error {
+  constructor(message: string, asserter?: Function) {
+    super(message);
+    Error.captureStackTrace?.(this, asserter || this.constructor);
+  }
+}
+
+export function isVisitFailure(err: any): err is VisitFailure {
+  return err instanceof VisitFailure;
+}
+
+// The Failure combinator
+class Fail implements Visitor {
+  visitFork(fork: Fork): void {
+    throw new VisitFailure("Fail");
+  }
+
+  visitLeaf(leaf: Leaf): void {
+    throw new VisitFailure("Fail");
+  }
+}
 
 class Choice implements Visitor {
   first: Visitor;
@@ -95,10 +123,14 @@ class Choice implements Visitor {
     try {
       tree.accept(this.first);
     } catch (err) {
-      tree.accept(this.then);
+      if (isVisitFailure(err)) {
+        tree.accept(this.then);
+      } else {
+        throw err;
+      }
     }
-
   }
+
   visitLeaf(leaf: Leaf) {
     this.apply(leaf);
   }
@@ -107,3 +139,7 @@ class Choice implements Visitor {
     this.apply(fork);
   }
 }
+
+/*********************************************************
+ * Example: using Fail and Choice to make visitors that conditionally fire at certain nodes
+ *********************************************************/
