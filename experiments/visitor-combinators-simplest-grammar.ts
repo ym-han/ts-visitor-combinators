@@ -141,5 +141,29 @@ class Choice implements Visitor {
 }
 
 /*********************************************************
- * Example: using Fail and Choice to make visitors that conditionally fire at certain nodes
+ * Example: using the Fail and Choice combinators 
+ * to make visitors that conditionally fire at certain nodes
+ * 
+ *               Try(v) := Choice(v, Identity)
+ *         IfZeroAddOne := Try( Sequence( IsZero, AddOne) )
  *********************************************************/
+
+class IsZero extends Fail {
+  visitLeaf(leaf: Leaf) {
+    if (leaf.value !== 0) {
+      throw new VisitFailure("NotZero");
+    }
+  }
+}
+
+class Try extends Choice {
+  constructor(visitor: Visitor) {
+    super(visitor, new Identity());
+  }
+}
+
+class IfZeroAddOne extends Try {
+  constructor() {
+    super(new Sequence(new IsZero(), new AddOne()));
+  }
+}
