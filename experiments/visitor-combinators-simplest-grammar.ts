@@ -4,22 +4,37 @@
 
 // The tree: Node ::= Fork Node Node | Leaf Integer
 
-type Tree = Fork | Leaf
-type Fork = {
-  type: "Fork",
-  left: Tree,
-  right: Tree,
-  accept(visitor: Visitor): void;
-}
-type Leaf = {
-  type: "Leaf",
-  value: number,
-  accept(visitor: Visitor): void;
+type Tree = Fork | Leaf;
+
+class Fork implements Visitable {
+  left: Tree
+  right: Tree
+
+  constructor(left:Tree, right:Tree) { 
+    this.left = left; 
+    this.right=right 
+  }
+  
+  accept(visitor: Visitor): void {
+    visitor.visitFork(this);
+  }
 }
 
-// interface Visitable {
-//   accept(visitor: Visitor): void;
-// }
+class Leaf implements Visitable {
+  value: number
+
+  constructor(value: number) {
+    this.value = value;
+  }
+  
+  accept(visitor: Visitor): void {
+    visitor.visitLeaf(this);
+  }
+}
+
+interface Visitable {
+  accept(visitor: Visitor): void;
+}
 
 interface Visitor {
   visitLeaf(leaf: Leaf): void;
